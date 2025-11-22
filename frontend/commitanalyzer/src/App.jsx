@@ -37,14 +37,19 @@ const App = () => {
   return (
     <div className='relative w-full h-screen'>
       <Tree owner={owner} repo={repo}/>
-      <form className='flex justify-between absolute top-15 mx-auto w-1/2 left-50 right-50' onSubmit={handleSubmit}>
-          <label className='text-green-600 text-2xl pr-1' htmlFor="url">URL : </label>
-          <input className='bg-neutral-800 w-150 p-2 rounded focus: outline-green-600 ' autoComplete="off"  type="text" id='url' placeholder='https://github.com/username/repository' onChange={(e) => setUrl(e.target.value)}/>
-          <button className='bg-green-600 px-5 rounded ' type='submit'>Analyze</button>
-          {/* {res && <p>{JSON.stringify(res, null, 2)}</p>}
-          {res && <p>{res.explanation}</p>}
-          {res && <p>{res.reason}</p>}
-          {res && <p>{res.impact}</p>} */}
+        <form className='flex absolute top-15 mx-auto w-1/2 left-50 right-50' onSubmit={handleSubmit}>
+          <div className='h-22 p-2 py-5 px-5 bg-white/10 backdrop-blur-2xl border border-white/20 
+            shadow-[0_8px_32px_0_rgba(38,166,65,0.37)] 
+            rounded-2xl '>
+            {/* <label className='text-green-600 text-2xl pr-1' htmlFor="url">URL : </label> */}
+            <input className='bg-neutral-800 w-150 p-2 py-3 rounded focus: outline-green-600 mr-3' autoComplete="off"  type="text" id='url' placeholder='https://github.com/username/repository' onChange={(e) => setUrl(e.target.value)} defaultValue='https://github.com/'/>
+            <button className='bg-green-600 px-5 py-3 rounded ' type='submit'>Analyze</button>
+            {/* {res && <p>{JSON.stringify(res, null, 2)}</p>}
+            {res && <p>{res.explanation}</p>}
+            {res && <p>{res.reason}</p>}
+            {res && <p>{res.impact}</p>} */}
+          </div>
+          
         </form>
     </div>
     

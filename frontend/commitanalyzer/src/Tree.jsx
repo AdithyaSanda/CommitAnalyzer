@@ -2,16 +2,20 @@ import React, { useCallback, useEffect, useState } from "react";
 import ReactFlow, { Background, Controls, MiniMap, Position, useEdgesState, useNodesState, useReactFlow, ReactFlowProvider } from "reactflow";
 import "reactflow/dist/style.css";
 import axios from "axios";
+import SideBar from "./components/SideBar";
 
-function FlowContent({owner, repo}) {
+
+
+  function FlowContent({owner, repo}) {
   const [nodes, setNodes, onNodesChange] = useNodesState([])
   const [edges, setEdges, onEdgesChange] = useEdgesState([])
   const {setViewport, fitView} = useReactFlow()
+  const [sideNode, setSideNode] = useState(null)
 
   useEffect(() => {
     if(!owner || !repo) return
 
-    const fetchData = async () => {
+    const fetchData = async () => { 
       // const res = await fetch(`https://api.github.com/repos/vercel/next.js/commits`)
       // const dat = await res.json()
       // console.log(dat)
@@ -47,7 +51,7 @@ function FlowContent({owner, repo}) {
 
 
       setTimeout(() => {
-        setViewport({x: 600, y: 200, zoom: 1.3, duration: 800})
+        setViewport({x: 600, y: 200, zoom: 1.2, duration: 800})
       }, 200)
     }
 
@@ -85,7 +89,7 @@ function FlowContent({owner, repo}) {
       id: commit.id,
       data: {label: commit.label},
       position: {x: branchMap[commit.id] * 250, y: i * 120},
-      style: {background: "#282828", color: "whitesmoke", border: "2px solid whitesmoke", borderRadius: "50%", width: "70px", height: "70px", paddingTop: "25px"}
+      style: {background: "#282828", color: "whitesmoke", border: "2px solid whitesmoke", borderRadius: "50%", width: "70px", height: "70px", paddingTop: "25px", cursor: "pointer"}
     }))
   }
 
@@ -94,7 +98,9 @@ function FlowContent({owner, repo}) {
   
 
   return (
-    <ReactFlow 
+    <>
+      <ReactFlow 
+      className="myFlow"
           nodes={nodes} 
           edges={edges} 
           fitView 
@@ -102,22 +108,31 @@ function FlowContent({owner, repo}) {
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           style={{background: "#181818"}}
+          onNodeClick={(e, node) => {
+            e.stopPropagation()
+            setSideNode(node)
+          }}
+          onPaneClick={() => setSideNode(null)}
         >
 
         <Background />
         <Controls />
         <MiniMap style={{background: "#232323"}} maskColor="rgba(86, 86, 86, 0.5)"/>
       </ReactFlow>
+      {sideNode && <SideBar open={sideNode}/>}
+    </>
   )
 }
+
 
 export default function Tree({owner, repo}) {
   
   return (
-    <div style={{ width: "100vw", height: "100vh" }}>
+    <div style={{ width: "100vw", height: "100vh"}}>
       <ReactFlowProvider>
         <FlowContent owner={owner} repo={repo} />
       </ReactFlowProvider>
+      
     </div>
   );
 }

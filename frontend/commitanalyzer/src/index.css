@@ -5,3 +5,7 @@ body {
   color: whitesmoke;
   
 }
+
+.myFlow .react-flow__pane, .myFlow .react-flow__pane.dragging {
+  cursor: move;
+}
