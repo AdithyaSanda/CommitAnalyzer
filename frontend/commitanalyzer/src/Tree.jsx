@@ -119,7 +119,7 @@ import SideBar from "./components/SideBar";
         <Controls />
         <MiniMap style={{background: "#232323"}} maskColor="rgba(86, 86, 86, 0.5)"/>
       </ReactFlow>
-      {sideNode && <SideBar open={sideNode}/>}
+      {sideNode && <SideBar open={sideNode} owner={owner} repo={repo}/>}
     </>
   )
 }

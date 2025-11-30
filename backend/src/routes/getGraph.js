@@ -35,7 +35,6 @@ async function fetchDiff(owner, repo) {
 router.post("/",async (req, res) => {
     try {
         const {owner, repo} = req.body;
-        console.log(owner, repo)
 
         const commits = await fetchCommit(owner, repo)
         res.json({commits})

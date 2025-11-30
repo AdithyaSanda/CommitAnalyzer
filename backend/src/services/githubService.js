@@ -17,6 +17,26 @@ export async function fetchCommit(owner, repo) {
     }
 }
 
+export async function fetchCommitDetails(owner, repo, sha) {
+    try {
+        const res = await axios.get(
+            `https://api.github.com/repos/${owner}/${repo}/commits/${sha}`,
+            {headers: 
+                {
+                    Authorization: `token ${process.env.GITHUB_API_KEY}`,
+                    Accept: "application/json"
+                },
+            }
+        )
+
+        return res.data
+    }
+    catch(err) {
+        console.error("GITHUB API error: ", err.message)
+        throw err
+    }
+}
+
 export async function fetchCommitDiff(owner, repo, sha) {
     try {
         const res = await axios.get(
