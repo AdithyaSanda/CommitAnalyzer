@@ -3,8 +3,11 @@ import { Navigate } from 'react-router-dom'
 
 const ProtectedRoute = ({children}) => {
   const token = localStorage.getItem('token')
+  const expiry = localStorage.getItem('tokenExpiry')
   
-  if(!token) {
+  if(!token || !expiry || Date.now() > expiry) {
+    localStorage.removeItem('token')
+    localStorage.removeItem('tokenExpiry')
     return <Navigate to='/login' replace/>
   }
 

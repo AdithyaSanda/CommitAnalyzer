@@ -5,7 +5,7 @@ dotenv.config()
 console.log("API Key loaded:", process.env.GEMINI_API_KEY ? "Yes" : "No");
 
 const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
-const model = ai.getGenerativeModel({model: "gemini-2.5-pro"})
+const model = ai.getGenerativeModel({model: "gemini-2.0-flash-lite"})
 
 export async function analyzeCommit(prompt) {
     try {

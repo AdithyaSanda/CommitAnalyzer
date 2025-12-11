@@ -10,7 +10,7 @@ router.post("/",async (req, res) => {
     try {
         const diffText = await fetchCommitDiff(owner, repo, sha)
 
-        const prompt = `You will be given a GitHub repository commit diff. Analyze the diff and summarize the changes. Your goal is to clearly describe what was added, removed, modified, or refactored, and explain the intent or impact when possible.
+        const prompt = `You will be given a GitHub repository commit diff. Analyze the diff and summarize the changes. Your goal is to clearly describe what was added, removed, modified, or refactored, and explain the intent or impact when possible in 5-10 lines.
 
         Output Format (plain text only, no markdown or special characters):
         Change summary:

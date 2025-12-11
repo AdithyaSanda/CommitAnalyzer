@@ -8,6 +8,9 @@ import cors from "cors"
 import { connectDB } from "./config/dbConfig.js"
 import signupRoute from './routes/signup.js'
 import loginRoute from './routes/login.js'
+import historyRoute from './routes/history.js'
+import userRoute from './routes/getUser.js'
+
 
 
 dotenv.config()
@@ -32,6 +35,8 @@ app.use("/api/getGraphData", getGraphData)
 app.use("/api/getSummary", getCommitSummary)
 app.use('/user', signupRoute)
 app.use('/auth', loginRoute)
+app.use('/history', historyRoute)
+app.use('/users', userRoute)
 
 app.listen(5000, () => {
     console.log(`server running on port 5000`)

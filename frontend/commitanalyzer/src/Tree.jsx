@@ -3,34 +3,75 @@ import ReactFlow, { Background, Controls, MiniMap, Position, useEdgesState, useN
 import "reactflow/dist/style.css";
 import axios from "axios";
 import SideBar from "./components/SideBar";
+import {jwtDecode} from 'jwt-decode'
+import HistoryBar from './components/HistoryBar'
 
 
 
-  function FlowContent({owner, repo}) {
+  function FlowContent({owner, repo, url, updateUrl}) {
   const [nodes, setNodes, onNodesChange] = useNodesState([])
   const [edges, setEdges, onEdgesChange] = useEdgesState([])
   const {setViewport, fitView} = useReactFlow()
   const [sideNode, setSideNode] = useState(null)
+  const [prevId, setPrevId] = useState()
+  const [prevOwner, setPrevOwner] = useState()
+  const [prevRepo, setPrevRepo] = useState()
+  const [sideBarOpen, setSideBarOpen] = useState(false)
+
+  const handleChildData = useCallback((id) => {
+    setPrevId(id)
+  }, [])
+
+
+
+  useEffect(() => {
+    const getRepo = async () => {
+
+      if(!prevId) return
+
+      if(prevId === 'clear') {
+        setNodes([])
+        setEdges([])
+        updateUrl(null)
+        return
+      }
+
+      const response = await axios.get(`http://localhost:5000/history/item/${prevId}`)
+      const url = new URL(response.data.repoUrl)
+      const pathParts = url.pathname.split('/')
+      updateUrl(url)
+      setPrevOwner(pathParts[1])
+      setPrevRepo(pathParts[2])
+      setNodes(response.data.nodes)
+      setEdges(response.data.edges)
+
+      setTimeout(() => {
+        setViewport({x: 600, y: 200, zoom: 1.2, duration: 800})
+      }, 200)
+
+    }
+
+    getRepo()
+  }, [prevId])
+
 
   useEffect(() => {
     if(!owner || !repo) return
 
     const fetchData = async () => { 
-      // const res = await fetch(`https://api.github.com/repos/vercel/next.js/commits`)
-      // const dat = await res.json()
-      // console.log(dat)
-
+      
       
 
       const res = await axios.post(`http://localhost:5000/api/getGraph`, {owner, repo})
       const data = res.data.commits
-      // const data = await res.json()
+
 
       const newData = [...data].reverse().map((item) => ({
         id: item.sha,
         label: item.sha.slice(-5),
         parentIds: item.parents?.map((it) => it.sha) 
       }))
+
 
 
 
@@ -44,21 +85,31 @@ import SideBar from "./components/SideBar";
         }))
       )
 
-      
+
       
       setNodes(newNodes)
       setEdges(newEdges)
+      
+      
+      
+      const token = localStorage.getItem('token')
+      const user = jwtDecode(token)
+      const userId = user.id
+      
+      await axios.post('http://localhost:5000/history/addRepo', {userId:userId, repoUrl:url, nodes:newNodes, edges:newEdges})
 
 
-      setTimeout(() => {
-        setViewport({x: 600, y: 200, zoom: 1.2, duration: 800})
-      }, 200)
+      
     }
 
     fetchData()
   }, [owner, repo])
 
+
   const branchMapping = (commits) => {
+
+    if(!commits) return
+
     const branchMap = {}
     const roots = commits.filter(c => !c.parentIds || c.parentIds.length === 0)
     roots.forEach(root => branchMap[root.id] = 0)
@@ -83,6 +134,9 @@ import SideBar from "./components/SideBar";
   }
 
   const nodeLayout = (commits) => {
+
+    if(!commits) return
+
     const branchMap = branchMapping(commits)
 
     return commits.map((commit, i) => ({
@@ -93,7 +147,6 @@ import SideBar from "./components/SideBar";
     }))
   }
 
-  
 
   
 
@@ -111,26 +164,35 @@ import SideBar from "./components/SideBar";
           onNodeClick={(e, node) => {
             e.stopPropagation()
             setSideNode(node)
+            setSideBarOpen(true)
           }}
-          onPaneClick={() => setSideNode(null)}
+          onPaneClick={() =>{ 
+            setSideNode(null)
+            setSideBarOpen(false)
+          }}
         >
 
         <Background />
-        <Controls />
         <MiniMap style={{background: "#232323"}} maskColor="rgba(86, 86, 86, 0.5)"/>
       </ReactFlow>
-      {sideNode && <SideBar open={sideNode} owner={owner} repo={repo}/>}
+      <SideBar open={sideBarOpen} commit={sideNode} owner={prevOwner || owner} repo={prevRepo || repo}/>
+      <HistoryBar onSend={handleChildData}/>
     </>
   )
 }
 
 
-export default function Tree({owner, repo}) {
+
+
+export default function Tree({owner, repo, url, updateUrl}) {
+
+  
+  
   
   return (
     <div style={{ width: "100vw", height: "100vh"}}>
       <ReactFlowProvider>
-        <FlowContent owner={owner} repo={repo} />
+        <FlowContent owner={owner} repo={repo} url={url} updateUrl={updateUrl}/>
       </ReactFlowProvider>
       
     </div>
