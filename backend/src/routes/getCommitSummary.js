@@ -1,10 +1,28 @@
 import express from "express"
 import { fetchCommitDiff } from "../services/githubService.js"
 import { analyzeCommit } from "../services/geminiService.js"
+import redis from "redis"
 
 const router = express()
+const client = redis.createClient()
+client.connect()
 
-router.post("/",async (req, res) => {
+const cacheMiddleware = (req, res, next) => {
+    const {sha} = req.body
+
+    client.get(sha, (err, data) => {
+        if(err) throw err
+
+        if(data != null) {
+            res.send(data);
+        }
+        else {
+            next()
+        }
+    })
+}
+
+router.post("/", async (req, res) => {
     const {owner, repo, sha} = req.body
 
     try {
@@ -26,6 +44,7 @@ router.post("/",async (req, res) => {
         ${diffText}`
 
         const summary = await analyzeCommit(prompt)
+        client.set(`${sha}`)
         res.send(summary)
     }
     catch(err) {

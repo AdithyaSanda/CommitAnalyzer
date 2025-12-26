@@ -1,5 +1,6 @@
 import axios from 'axios'
 import React, { useEffect, useState } from 'react'
+import ReactMarkdown from 'react-markdown'
 
 const SideBar = ({commit, open, owner, repo}) => {
   const [details, setDetails] = useState()
@@ -16,13 +17,14 @@ const SideBar = ({commit, open, owner, repo}) => {
       setDetails(res)
     }
 
-    // const getSummary = async () => {
-    //   const res = await axios.post("http://localhost:5000/api/getSummary", {owner, repo, sha})
-    //   setSummmary(res)
-    // }
+    const getSummary = async () => {
+      const res = await axios.post("http://localhost:5000/commit/summary", {owner, repo, sha})
+      console.log(res)
+      setSummmary(res.data.choices[0].message.content)
+    }
 
     getDetails()
-    // getSummary()
+    getSummary()
 
     
   }, [sha])
@@ -39,7 +41,6 @@ const SideBar = ({commit, open, owner, repo}) => {
   }, [open])
 
 
-  console.log(open)
 
   return (
     <div className={`bg-neutral-800 h-full flex absolute top-0 right-0  transition-all duration-500 ${open ? "w-96 " : "w-0 pointer-events-none"} flex-col overflow-auto`}>
@@ -62,7 +63,7 @@ const SideBar = ({commit, open, owner, repo}) => {
           {summary && <div className='flex-col space-y-3'>
             <hr className='mr-3 border-neutral-600'/>
             <p className='font-semibold'>AI Summary</p>
-            <p style={{whiteSpace: "pre-wrap"}}>{summary.data}</p>
+            <ReactMarkdown>{summary}</ReactMarkdown>
           </div>}
       </div>}
     </div>

@@ -10,7 +10,7 @@ import signupRoute from './routes/signup.js'
 import loginRoute from './routes/login.js'
 import historyRoute from './routes/history.js'
 import userRoute from './routes/getUser.js'
-
+import summaryRoute from './routes/getSummary.js'
 
 
 dotenv.config()
@@ -37,6 +37,7 @@ app.use('/user', signupRoute)
 app.use('/auth', loginRoute)
 app.use('/history', historyRoute)
 app.use('/users', userRoute)
+app.use('/commit', summaryRoute)
 
 app.listen(5000, () => {
     console.log(`server running on port 5000`)
