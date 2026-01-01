@@ -1,13 +1,25 @@
-import getSummary from "../services/qwenService.js"
+import { getSummary }from "../services/qwenService.js"
 import client from "../config/redisConfig.js"
 
 const getCommitSummary = async (req, res) => {
     try {
         const {owner, repo, sha} = req.body
-        const summary = await getSummary(owner, repo, sha)
-        client.set(`${sha}`, JSON.stringify(summary))
-        res.send(summary)
-    }
+
+        res.setHeader("Content-Type", "text/event-stream")
+        res.setHeader("Cache-Control", "no-cache")
+        res.setHeader("Connection", "keep-alive")
+
+        let fullText = ""
+
+        for await (const token of getSummary(owner, repo, sha)) {
+            fullText += token
+            res.write(`data: ${JSON.stringify({content: token})}\n\n`)
+        }
+
+        await client.set(`${sha}`, fullText)
+        res.write("data: [DONE]\n\n")
+        res.end()
+    }   
     catch(err) {
         res.status(500).json({error:`HF error: ${err.message}`})
     }

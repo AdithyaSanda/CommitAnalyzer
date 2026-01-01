@@ -1,12 +1,20 @@
 import axios from 'axios'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import ReactMarkdown from 'react-markdown'
+import remarkBreaks from 'remark-breaks'
 
 const SideBar = ({commit, open, owner, repo}) => {
   const [details, setDetails] = useState()
-  const [summary, setSummmary] = useState()
+  const [summary, setSummary] = useState("")
   const [showContent, setShowContent] = useState(false)
   const sha = commit?.id
+  const bottomRef = useRef(null)
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({
+      behavior: "smooth"
+    })
+  }, [summary])
 
   useEffect(() => {
 
@@ -18,14 +26,58 @@ const SideBar = ({commit, open, owner, repo}) => {
     }
 
     const getSummary = async () => {
-      const res = await axios.post("http://localhost:5000/commit/summary", {owner, repo, sha})
-      console.log(res)
-      setSummmary(res.data.choices[0].message.content)
+        setSummary("")
+
+        try {
+          
+          const res = await fetch("http://localhost:5000/commit/summary", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({owner, repo, sha})
+        })
+
+        console.log(res)
+        const reader = res.body.getReader()
+        const decoder = new TextDecoder()
+
+        while(true) {
+          const {value, done} = await reader.read()
+          if(done) break;
+
+          const chunk = decoder.decode(value, {stream: true})
+          const lines = chunk.split("\n")
+          for(const line of lines) {
+            
+            if(!line.startsWith("data: "))  continue
+
+            const text = line.slice(6)
+            if(text == "[DONE]") {
+              return
+            }
+
+            try {
+              const parsed = JSON.parse(text)
+              setSummary(prev => prev + parsed.content)  
+            }
+            catch(err) {
+              console.log("JSON Parse Error on chunk:", text)
+            }
+    
+            
+          }
+
+        }
+      }
+      catch(err) {
+        console.log("Stream err: ", err)
+      }
+      
+
+      
     }
 
     getDetails()
     getSummary()
-
     
   }, [sha])
 
@@ -43,7 +95,7 @@ const SideBar = ({commit, open, owner, repo}) => {
 
 
   return (
-    <div className={`bg-neutral-800 h-full flex absolute top-0 right-0  transition-all duration-500 ${open ? "w-96 " : "w-0 pointer-events-none"} flex-col overflow-auto`}>
+    <div className={`bg-neutral-800 h-full flex absolute top-0 right-0  transition-all duration-500 ${open ? "w-96" : "w-0 pointer-events-none"} flex-col overflow-auto`}>
       {showContent && <h1 className='text-2xl font-semibold ml-3 mt-3'>Commit Details</h1>}
       {showContent && details && <div className='ml-3.5 mt-4 flex-col space-y-3'>
           <p><span className='font-semibold'>SHA:</span> {details.data.sha.slice(-5)}</p>  
@@ -60,10 +112,24 @@ const SideBar = ({commit, open, owner, repo}) => {
           <hr className='mr-3 border-neutral-600'/>
           <p className='font-semibold'>Message</p>
           <p style={{whiteSpace: "pre-wrap"}}>{details.data.commit.message}</p>
-          {summary && <div className='flex-col space-y-3'>
+          {<div className='flex-col space-y-3'>
             <hr className='mr-3 border-neutral-600'/>
             <p className='font-semibold'>AI Summary</p>
-            <ReactMarkdown>{summary}</ReactMarkdown>
+            <article className="
+              prose max-w-full overflow-hidden
+              [&_pre]:max-w-full
+              [&_pre]:overflow-x-auto
+              [&_pre]:whitespace-pre-wrap
+              [&_code]:wrap-break-words
+              [&_table]:block
+              [&_table]:max-w-full
+              [&_table]:overflow-x-auto
+              [&_img]:max-w-full
+              [&_img]:h-auto
+            ">
+              <ReactMarkdown remarkPlugins={[remarkBreaks]}>{summary}</ReactMarkdown>
+            </article>
+            <div ref={bottomRef}/>
           </div>}
       </div>}
     </div>

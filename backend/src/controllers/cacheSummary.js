@@ -4,16 +4,28 @@ import client from "../config/redisConfig.js"
 const getCacheSummary = async (req, res, next) => {
     try {
         const {sha} = req.body
+
+        
+
         const response = await client.get(sha)
 
         if(response) {
-            return res.send(JSON.parse(response))
+
+            res.setHeader("Content-Type", "text/event-stream");
+            res.setHeader("Cache-Control", "no-cache");
+            res.setHeader("Connection", "keep-alive");
+            
+            res.write(`data: ${JSON.stringify({content: response})}\n\n`)
+            
+            res.write("data: [DONE]\n\n")
+            res.end()
+            return
         }
 
-        return next()
-    }
+        next()
+    }   
     catch(err) {
-        res.status(500).json({error: `redis error: ${err.message}`})
+        next(err)   
     }
 }
 
