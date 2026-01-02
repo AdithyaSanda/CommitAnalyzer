@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react'
-import { GitGraph, PanelLeft } from "lucide-react";
+import React, { useContext, useEffect, useState } from 'react'
+import { GitGraph, PanelLeft, Trash2 } from "lucide-react";
 import axios from 'axios'
 import {jwtDecode} from 'jwt-decode'
 import { useNavigate } from 'react-router-dom'
+import HistoryContext from '../HistroryContext';
 
 
 
@@ -13,12 +14,13 @@ const HistoryBar = ({onSend}) => {
     const userId = user.id
 
     const navigate = useNavigate()
+    const {history, setHistory} = useContext(HistoryContext)
 
-    const [history, setHistory] = useState([])
     const [userName, setUserName] = useState()
     const [small, setSmall] = useState(false)
     const [hovered, setHovered] = useState(false)
     const [showContent, setShowContent] = useState(false)
+    const [deleteHovered, setDeleteHovered] = useState(null)
 
     useEffect(() => {
         if(!small) {
@@ -63,12 +65,16 @@ const HistoryBar = ({onSend}) => {
         navigate('/login', {replace: true})
     }
 
-    
+    const deleteRepo = async (e, id) => {
+        e.stopPropagation()
+        await axios.delete(`http://localhost:5000/history/item/${id}`)
+        setHistory(prev => prev.filter(item => item.id !== id));
+    }    
 
     
     return (
         <>
-            <div className={` h-screen bg-neutral-800 absolute top-0 overflow-y-auto transition-all duration-300 ${small ? 'w-16' : 'w-64' }`}>
+            <div className={` h-screen bg-neutral-800 absolute top-0 overflow-y-auto transition-all duration-300 pb-4 ${small ? 'w-16' : 'w-66' }`}>
 
                 {small ? (
                     !hovered ? (
@@ -87,14 +93,17 @@ const HistoryBar = ({onSend}) => {
                 )}
 
     
-                <p className='ml-5 gap-x-2 absolute top-22 flex cursor-pointer' onClick={() => send('clear')}><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5 ">
+                <p className='ml-5 gap-x-2 absolute top-22 flex cursor-pointer' onClick={() => {send('clear')}}><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5 ">
                     <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
                 </svg>{showContent &&  'New Analysis'}</p>
                 {showContent && <div className={`mt-34`}>
-                    <p className='ml-5 text-md text-zinc-400'>Your analyzes</p>
+                    <p className='ml-5 mb-2 text-md text-zinc-400'>Your analyzes</p>
                     {history.map((repo, index) => (
-                        <div key={index} className='overflow-x-hidden' onClick={() => send(repo.id)}>
-                            <p className={`mt-4 ml-5 text-sm cursor-pointer `}>{repo.url}</p>
+                        <div key={index} className='overflow-x-hidden relative ml-1' onClick={() => send(repo.id)}  onMouseEnter={() => {setDeleteHovered(index)}} onMouseLeave={() => {setDeleteHovered(null)}}>
+                            <p className={` text-sm cursor-pointer ${deleteHovered === index ? 'bg-white/15 ml-2 pl-2 mt-1 mb-1 pt-2 pb-2 rounded-md' : 'ml-4 mt-3 mb-3'}`}>{repo.url} {deleteHovered === index && <Trash2 className='h-4 w-4 absolute top-3.5 right-4 inline-block text-red-400 cursor-pointer' onClick={(e) => {deleteRepo(e, repo.id)
+                                send('clear')
+                            }}/>}</p>
+                            
                         </div>
                     ))}
                 </div>}

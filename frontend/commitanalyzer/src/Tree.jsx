@@ -1,14 +1,14 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import ReactFlow, { Background, Controls, MiniMap, Position, useEdgesState, useNodesState, useReactFlow, ReactFlowProvider } from "reactflow";
 import "reactflow/dist/style.css";
 import axios from "axios";
 import SideBar from "./components/SideBar";
 import {jwtDecode} from 'jwt-decode'
 import HistoryBar from './components/HistoryBar'
+import HistoryContext from "./HistroryContext";
 
 
-
-  function FlowContent({owner, repo, url, updateUrl}) {
+function FlowContent({owner, repo, url, updateUrl}) {
   const [nodes, setNodes, onNodesChange] = useNodesState([])
   const [edges, setEdges, onEdgesChange] = useEdgesState([])
   const {setViewport, fitView} = useReactFlow()
@@ -17,6 +17,7 @@ import HistoryBar from './components/HistoryBar'
   const [prevOwner, setPrevOwner] = useState()
   const [prevRepo, setPrevRepo] = useState()
   const [sideBarOpen, setSideBarOpen] = useState(false)
+  const {setHistory} = useContext(HistoryContext)
 
   const handleChildData = useCallback((id) => {
     setPrevId(id)
@@ -96,10 +97,12 @@ import HistoryBar from './components/HistoryBar'
       const user = jwtDecode(token)
       const userId = user.id
       
-      await axios.post('http://localhost:5000/history/addRepo', {userId:userId, repoUrl:url, nodes:newNodes, edges:newEdges})
-
-
       
+      const response = await axios.post('http://localhost:5000/history/addRepo', {userId:userId, repoUrl:url, nodes:newNodes, edges:newEdges})
+      const Url = new URL(url)
+      const pathParts = Url.pathname.split('/')
+      const newItem = {id: response.data.repo._id, url: pathParts[1] + '/' + pathParts[2]}
+      setHistory(prev => [newItem, ...prev])
     }
 
     fetchData()

@@ -25,4 +25,9 @@ export const getRepo = async (id) => {
     return repo
 }
 
+export const deleteHistory = async (id) => {
+    await History.deleteOne({_id: id})
+    return
+}
+
 export default createHistory
