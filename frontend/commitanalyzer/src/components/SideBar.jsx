@@ -36,7 +36,6 @@ const SideBar = ({commit, open, owner, repo}) => {
           body: JSON.stringify({owner, repo, sha})
         })
 
-        console.log(res)
         const reader = res.body.getReader()
         const decoder = new TextDecoder()
 
@@ -95,7 +94,7 @@ const SideBar = ({commit, open, owner, repo}) => {
 
 
   return (
-    <div className={`bg-neutral-800 h-full flex absolute top-0 right-0  transition-all duration-500 ${open ? "w-96" : "w-0 pointer-events-none"} flex-col overflow-auto`}>
+    <div className={`bg-white/10 backdrop-blur-3xl border-l border-white/20 h-full flex absolute top-0 right-0 z-10  transition-all duration-500 ${open ? "w-96" : "w-0 pointer-events-none"} flex-col overflow-auto`}>
       {showContent && <h1 className='text-2xl font-semibold ml-3 mt-3'>Commit Details</h1>}
       {showContent && details && <div className='ml-3.5 mt-4 flex-col space-y-3'>
           <p><span className='font-semibold'>SHA:</span> {details.data.sha.slice(-5)}</p>  

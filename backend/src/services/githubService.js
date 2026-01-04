@@ -3,10 +3,10 @@ import dotenv from "dotenv"
 
 dotenv.config()
 
-export async function fetchCommit(owner, repo) {
+export async function fetchCommit(owner, repo, page=1) {
     try {
         const res = await axios.get(
-            `https://api.github.com/repos/${owner}/${repo}/commits`,
+            `https://api.github.com/repos/${owner}/${repo}/commits?page=${page}`,
             {headers: {Authorization : `token ${process.env.GITHUB_API_KEY}`}}
         )
         return res.data

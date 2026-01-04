@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
 import ReactFlow, { Background, Controls, MiniMap, Position, useEdgesState, useNodesState, useReactFlow, ReactFlowProvider } from "reactflow";
 import "reactflow/dist/style.css";
 import axios from "axios";
@@ -8,10 +8,11 @@ import HistoryBar from './components/HistoryBar'
 import HistoryContext from "./HistroryContext";
 
 
-function FlowContent({owner, repo, url, updateUrl}) {
+function FlowContent({owner, repo, url, updateUrl, page, setPage}) {
   const [nodes, setNodes, onNodesChange] = useNodesState([])
   const [edges, setEdges, onEdgesChange] = useEdgesState([])
-  const {setViewport, fitView} = useReactFlow()
+  const [oldData, setOldData] = useState([])
+  const {setViewport} = useReactFlow()
   const [sideNode, setSideNode] = useState(null)
   const [prevId, setPrevId] = useState()
   const [prevOwner, setPrevOwner] = useState()
@@ -19,10 +20,11 @@ function FlowContent({owner, repo, url, updateUrl}) {
   const [sideBarOpen, setSideBarOpen] = useState(false)
   const {setHistory} = useContext(HistoryContext)
 
+  const lastSavedRef = useRef(null)
+
   const handleChildData = useCallback((id) => {
     setPrevId(id)
   }, [])
-
 
 
   useEffect(() => {
@@ -34,6 +36,7 @@ function FlowContent({owner, repo, url, updateUrl}) {
         setNodes([])
         setEdges([])
         updateUrl(null)
+        setPrevId(null)
         return
       }
 
@@ -45,6 +48,7 @@ function FlowContent({owner, repo, url, updateUrl}) {
       setPrevRepo(pathParts[2])
       setNodes(response.data.nodes)
       setEdges(response.data.edges)
+      setPrevId(null)
 
       setTimeout(() => {
         setViewport({x: 600, y: 200, zoom: 1.2, duration: 800})
@@ -55,60 +59,89 @@ function FlowContent({owner, repo, url, updateUrl}) {
     getRepo()
   }, [prevId])
 
+  useEffect(() => {
+    if(!owner || !repo) return
+
+    setPage(1)
+    setOldData([])
+
+  }, [owner, repo])
 
   useEffect(() => {
     if(!owner || !repo) return
 
     const fetchData = async () => { 
       
-      
 
-      const res = await axios.post(`http://localhost:5000/api/getGraph`, {owner, repo})
+      const res = await axios.post(`http://localhost:5000/api/getGraph`, {owner, repo, page})
       const data = res.data.commits
 
-
-      const newData = [...data].reverse().map((item) => ({
-        id: item.sha,
-        label: item.sha.slice(-5),
-        parentIds: item.parents?.map((it) => it.sha) 
-      }))
-
-
-
-
-      const newNodes = nodeLayout(newData)
-      
-      const newEdges = newData.flatMap((commit) => 
-        commit.parentIds.map((pid) => ({
-          id: `e-${pid}-${commit.id}`,
-          source: pid,
-          target: commit.id,
-        }))
-      )
-
-
-      
-      setNodes(newNodes)
-      setEdges(newEdges)
       
       
+      setOldData(prev => {
+        const merged = [...prev, ...data]
+
+        const newData = [...data].reverse().map((item) => ({
+          id: item.sha,
+          label: item.sha.slice(-5),
+          parentIds: item.parents?.map((it) => it.sha) 
+        })) 
+
+        const newNodes = nodeLayout(newData)
       
+        const newEdges = newData.flatMap((commit) => 
+          commit.parentIds.map((pid) => ({
+            id: `e-${pid}-${commit.id}`,
+            source: pid,
+            target: commit.id,
+          }))
+        )
+
+        setNodes(newNodes)
+        setEdges(newEdges)
+
+        setTimeout(() => {
+          setViewport({x: 600, y: 200, zoom: 1.2, duration: 800})
+        }, 200)
+
+        return merged
+      })
+
+      
+    }
+
+    fetchData()
+  }, [owner, repo, page])
+
+
+  useEffect(() => {
+    const updateDb = async () => {
+      if(!url || !owner || !repo) return
+
+      const repoKey = `${owner}/${repo}`
+
+      if(lastSavedRef.current === repoKey) return
+      if(nodes.length === 0) return
+
+      lastSavedRef.current = repoKey
+
       const token = localStorage.getItem('token')
       const user = jwtDecode(token)
       const userId = user.id
       
-      
-      const response = await axios.post('http://localhost:5000/history/addRepo', {userId:userId, repoUrl:url, nodes:newNodes, edges:newEdges})
+      const response = await axios.post('http://localhost:5000/history/addRepo', {userId:userId, repoUrl:url, nodes:nodes, edges:edges})
       const Url = new URL(url)
       const pathParts = Url.pathname.split('/')
       const newItem = {id: response.data.repo._id, url: pathParts[1] + '/' + pathParts[2]}
       setHistory(prev => [newItem, ...prev])
+
+      
+
     }
 
-    fetchData()
-  }, [owner, repo])
-
-
+    updateDb()
+  }, [owner, repo, nodes])
+  
   const branchMapping = (commits) => {
 
     if(!commits) return
@@ -187,7 +220,7 @@ function FlowContent({owner, repo, url, updateUrl}) {
 
 
 
-export default function Tree({owner, repo, url, updateUrl}) {
+export default function Tree({owner, repo, url, updateUrl, page, setPage}) {
 
   
   
@@ -195,7 +228,7 @@ export default function Tree({owner, repo, url, updateUrl}) {
   return (
     <div style={{ width: "100vw", height: "100vh"}}>
       <ReactFlowProvider>
-        <FlowContent owner={owner} repo={repo} url={url} updateUrl={updateUrl}/>
+        <FlowContent owner={owner} repo={repo} url={url} updateUrl={updateUrl} page={page} setPage={setPage}/>
       </ReactFlowProvider>
       
     </div>

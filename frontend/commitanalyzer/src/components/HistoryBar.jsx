@@ -74,7 +74,7 @@ const HistoryBar = ({onSend}) => {
     
     return (
         <>
-            <div className={` h-screen bg-neutral-800 absolute top-0 overflow-y-auto transition-all duration-300 pb-4 ${small ? 'w-16' : 'w-66' }`}>
+            <div className={` h-screen bg-white/10 backdrop-blur-3xl border-r border-white/20 absolute top-0 overflow-y-auto transition-all duration-300 pb-4 ${small ? 'w-16' : 'w-66' }`}>
 
                 {small ? (
                     !hovered ? (
@@ -100,15 +100,14 @@ const HistoryBar = ({onSend}) => {
                     <p className='ml-5 mb-2 text-md text-zinc-400'>Your analyzes</p>
                     {history.map((repo, index) => (
                         <div key={index} className='overflow-x-hidden relative ml-1' onClick={() => send(repo.id)}  onMouseEnter={() => {setDeleteHovered(index)}} onMouseLeave={() => {setDeleteHovered(null)}}>
-                            <p className={` text-sm cursor-pointer ${deleteHovered === index ? 'bg-white/15 ml-2 pl-2 mt-1 mb-1 pt-2 pb-2 rounded-md' : 'ml-4 mt-3 mb-3'}`}>{repo.url} {deleteHovered === index && <Trash2 className='h-4 w-4 absolute top-3.5 right-4 inline-block text-red-400 cursor-pointer' onClick={(e) => {deleteRepo(e, repo.id)
+                            <p className={` text-sm cursor-pointer ${deleteHovered === index ? 'bg-white/15 ml-2 mr-2 pl-2 mt-1 mb-1 pt-2 pb-2 rounded-md' : 'ml-4 mt-3 mb-3'}`}>{repo.url} {deleteHovered === index && <Trash2 className='h-4 w-4 absolute top-3.5 right-4 inline-block text-red-400 cursor-pointer' onClick={(e) => {deleteRepo(e, repo.id)
                                 send('clear')
                             }}/>}</p>
-                            
                         </div>
                     ))}
                 </div>}
             </div>
-            <div className={` h-12  bg-neutral-800 absolute bottom-0 transition-all duration-300 ${small ? 'w-16' : 'w-62 border-t border-neutral-500'}`}>
+            <div className={` h-12  bg-white/0 backdrop-blur-3xl border-t border-r border-white/20  absolute bottom-0 transition-all duration-300 ${small ? 'w-16' : 'w-66 border-t border-neutral-500'}`}>
                     {userName && <img src={`https://placehold.co/30?text=${userName.slice(0,1).toUpperCase()}`} alt="" className='rounded-3xl ml-4 mt-2'/>}
                     {!small && <p className='ml-5 text-sm absolute top-3 left-10 font-semibold'>{userName}</p>}
                     {!small && <button className='text-sm bg-green-500/10 border border-green-600 p-1.5 px-3 rounded-2xl absolute right-5 top-2 text-green-600 cursor-pointer' onClick={handleLogout}>Logout</button>}
