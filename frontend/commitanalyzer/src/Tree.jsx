@@ -8,7 +8,7 @@ import HistoryBar from './components/HistoryBar'
 import HistoryContext from "./HistroryContext";
 
 
-function FlowContent({owner, repo, url, updateUrl, page, setPage}) {
+function FlowContent({owner, repo, url, updateUrl, page, setPage, setLoading}) {
   const [nodes, setNodes, onNodesChange] = useNodesState([])
   const [edges, setEdges, onEdgesChange] = useEdgesState([])
   const [oldData, setOldData] = useState([])
@@ -72,6 +72,7 @@ function FlowContent({owner, repo, url, updateUrl, page, setPage}) {
 
     const fetchData = async () => { 
       
+      setLoading(true)
 
       const res = await axios.post(`http://localhost:5000/api/getGraph`, {owner, repo, page})
       const data = res.data.commits
@@ -111,6 +112,7 @@ function FlowContent({owner, repo, url, updateUrl, page, setPage}) {
     }
 
     fetchData()
+    setLoading(false)
   }, [owner, repo, page])
 
 
@@ -220,7 +222,7 @@ function FlowContent({owner, repo, url, updateUrl, page, setPage}) {
 
 
 
-export default function Tree({owner, repo, url, updateUrl, page, setPage}) {
+export default function Tree({owner, repo, url, updateUrl, page, setPage, setLoading}) {
 
   
   
@@ -228,7 +230,7 @@ export default function Tree({owner, repo, url, updateUrl, page, setPage}) {
   return (
     <div style={{ width: "100vw", height: "100vh"}}>
       <ReactFlowProvider>
-        <FlowContent owner={owner} repo={repo} url={url} updateUrl={updateUrl} page={page} setPage={setPage}/>
+        <FlowContent owner={owner} repo={repo} url={url} updateUrl={updateUrl} page={page} setPage={setPage} setLoading={setLoading}/>
       </ReactFlowProvider>
       
     </div>
