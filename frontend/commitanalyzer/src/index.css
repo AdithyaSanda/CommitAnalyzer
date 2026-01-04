@@ -29,3 +29,9 @@ body {
   scrollbar-width: thin;
   scrollbar-color: #5a5a5a #262626;
 }
+
+@keyframes blink {
+  0% { opacity: 0; }
+  20% { opacity: 1; }
+  100% { opacity: 0; }
+}

@@ -7,6 +7,7 @@ const SideBar = ({commit, open, owner, repo}) => {
   const [details, setDetails] = useState()
   const [summary, setSummary] = useState("")
   const [showContent, setShowContent] = useState(false)
+  const [loading, setLoading] = useState(false)
   const sha = commit?.id
   const bottomRef = useRef(null)
 
@@ -27,6 +28,7 @@ const SideBar = ({commit, open, owner, repo}) => {
 
     const getSummary = async () => {
         setSummary("")
+        setLoading(true)
 
         try {
           
@@ -36,12 +38,18 @@ const SideBar = ({commit, open, owner, repo}) => {
           body: JSON.stringify({owner, repo, sha})
         })
 
+        let hasReceivedFirstChunk = false
         const reader = res.body.getReader()
         const decoder = new TextDecoder()
 
         while(true) {
           const {value, done} = await reader.read()
           if(done) break;
+
+          if(!hasReceivedFirstChunk) {
+            setLoading(false)
+            hasReceivedFirstChunk = true
+          }
 
           const chunk = decoder.decode(value, {stream: true})
           const lines = chunk.split("\n")
@@ -114,6 +122,7 @@ const SideBar = ({commit, open, owner, repo}) => {
           {<div className='flex-col space-y-3'>
             <hr className='mr-3 border-neutral-600'/>
             <p className='font-semibold'>AI Summary</p>
+            {loading && <span className='w-4 h-4 bg-white rounded-full animate-[blink_0.8s_infinite_both] inline-block'/>}
             <article className="
               prose max-w-full overflow-hidden
               [&_pre]:max-w-full
