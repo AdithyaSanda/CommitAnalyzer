@@ -19,7 +19,10 @@ const SideBar = ({commit, open, owner, repo}) => {
 
   useEffect(() => {
 
-    if(!owner || !repo || !sha) return
+    const saved = localStorage.getItem('repo-info')
+    const {owner, repo} = JSON.parse(saved)
+
+    if(!owner || !repo || !sha) return 
 
     const getDetails = async () => {
       const res = await axios.post("http://localhost:5000/api/getGraphData", {owner, repo, sha})

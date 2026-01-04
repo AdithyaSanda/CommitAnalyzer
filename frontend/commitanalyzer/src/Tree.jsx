@@ -12,20 +12,23 @@ function FlowContent({owner, repo, url, updateUrl, page, setPage, setLoading}) {
   const [nodes, setNodes, onNodesChange] = useNodesState([])
   const [edges, setEdges, onEdgesChange] = useEdgesState([])
   const [oldData, setOldData] = useState([])
-  const {setViewport} = useReactFlow()
+  const {setViewport, fitView} = useReactFlow()
   const [sideNode, setSideNode] = useState(null)
   const [prevId, setPrevId] = useState()
   const [prevOwner, setPrevOwner] = useState()
   const [prevRepo, setPrevRepo] = useState()
   const [sideBarOpen, setSideBarOpen] = useState(false)
+
   const {setHistory} = useContext(HistoryContext)
 
   const lastSavedRef = useRef(null)
+  const isHydratedRef = useRef(true)
 
   const handleChildData = useCallback((id) => {
     setPrevId(id)
   }, [])
 
+  
 
   useEffect(() => {
     const getRepo = async () => {
@@ -101,23 +104,28 @@ function FlowContent({owner, repo, url, updateUrl, page, setPage, setLoading}) {
         setNodes(newNodes)
         setEdges(newEdges)
 
-        setTimeout(() => {
-          setViewport({x: 600, y: 200, zoom: 1.2, duration: 800})
-        }, 200)
 
         return merged
       })
 
+      setTimeout(() => {
+        setViewport({x: 600, y: 200, zoom: 1.2, duration: 800})
+      }, 200)
+
+      localStorage.setItem('repo-info', JSON.stringify({owner, repo}))
       
+        
     }
 
     fetchData()
     setLoading(false)
+    
   }, [owner, repo, page])
 
 
   useEffect(() => {
     const updateDb = async () => {
+      if(isHydratedRef.current) return
       if(!url || !owner || !repo) return
 
       const repoKey = `${owner}/${repo}`
@@ -143,6 +151,27 @@ function FlowContent({owner, repo, url, updateUrl, page, setPage, setLoading}) {
 
     updateDb()
   }, [owner, repo, nodes])
+
+  useEffect(() => {
+    if(nodes?.length === 0 || edges?.length === 0) return
+
+    localStorage.setItem('graph-state', JSON.stringify({nodes, edges, owner, repo, url}))
+  }, [nodes, edges])  
+
+  useEffect(() => {
+    const saved = localStorage.getItem('graph-state')
+    if(saved) {
+      const {nodes, edges, owner, repo, url} = JSON.parse(saved)
+      setNodes(nodes)
+      setEdges(edges)
+      setPrevOwner(owner)
+      setPrevRepo(repo)
+      updateUrl(url)
+    }
+
+    isHydratedRef.current = false
+    
+  }, [])
   
   const branchMapping = (commits) => {
 
@@ -185,7 +214,12 @@ function FlowContent({owner, repo, url, updateUrl, page, setPage, setLoading}) {
     }))
   }
 
-
+  const onInit = (reactFlowInstance) => {
+    reactFlowInstance.setViewport(
+      {x:600, y:200, zoom: 1.2},
+      {duration: 800}
+    )
+  }
   
 
   return (
@@ -200,6 +234,7 @@ function FlowContent({owner, repo, url, updateUrl, page, setPage, setLoading}) {
           onEdgesChange={onEdgesChange}
           style={{background: "#181818"}}
           onNodeClick={(e, node) => {
+            console.log("node clicked", node)
             e.stopPropagation()
             setSideNode(node)
             setSideBarOpen(true)
@@ -208,6 +243,7 @@ function FlowContent({owner, repo, url, updateUrl, page, setPage, setLoading}) {
             setSideNode(null)
             setSideBarOpen(false)
           }}
+          onInit={onInit}
         >
 
         <Background />

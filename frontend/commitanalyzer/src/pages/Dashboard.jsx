@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Tree from '../Tree'
 import { RefreshCw } from 'lucide-react';
 
@@ -30,7 +30,6 @@ const Dashboard = () => {
         
     }
 
-    
 
     return (
         <div className='relative w-full h-screen'>
