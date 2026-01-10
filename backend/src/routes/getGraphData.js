@@ -5,7 +5,6 @@ const router = express()
 
 router.post("/", async (req, res) => {
     const {owner, repo, sha} = req.body
-
     try {
         const response = await fetchCommitDetails(owner, repo, sha)
         res.send(response) 

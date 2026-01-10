@@ -3,12 +3,14 @@ import React, { useEffect, useState, useRef } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkBreaks from 'remark-breaks'
 
-const SideBar = ({commit, open, owner, repo}) => {
+const SideBar = ({commit, open}) => {
   const [details, setDetails] = useState()
   const [summary, setSummary] = useState("")
   const [showContent, setShowContent] = useState(false)
   const [loading, setLoading] = useState(false)
   const sha = commit?.id
+  const owner = commit?.data.owner
+  const repo = commit?.data.repo
   const bottomRef = useRef(null)
 
   useEffect(() => {
@@ -18,9 +20,6 @@ const SideBar = ({commit, open, owner, repo}) => {
   }, [summary])
 
   useEffect(() => {
-
-    const saved = localStorage.getItem('repo-info')
-    const {owner, repo} = JSON.parse(saved)
 
     if(!owner || !repo || !sha) return 
 

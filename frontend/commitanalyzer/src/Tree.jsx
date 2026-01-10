@@ -8,7 +8,7 @@ import HistoryBar from './components/HistoryBar'
 import HistoryContext from "./HistroryContext";
 
 
-function FlowContent({owner, repo, url, updateUrl, page, setPage, setLoading}) {
+function FlowContent({owner, repo, url, updateUrl, page, setPage, setLoading, fromRefresh}) {
   const [nodes, setNodes, onNodesChange] = useNodesState([])
   const [edges, setEdges, onEdgesChange] = useEdgesState([])
   const [oldData, setOldData] = useState([])
@@ -40,11 +40,13 @@ function FlowContent({owner, repo, url, updateUrl, page, setPage, setLoading}) {
         setEdges([])
         updateUrl(null)
         setPrevId(null)
+        setPrevOwner(null)
+        setPrevRepo(null)
         return
       }
 
       const response = await axios.get(`http://localhost:5000/history/item/${prevId}`)
-      const url = new URL(response.data.repoUrl)
+      const url = new URL(response.data.repoUrl)  
       const pathParts = url.pathname.split('/')
       updateUrl(url)
       setPrevOwner(pathParts[1])
@@ -68,19 +70,20 @@ function FlowContent({owner, repo, url, updateUrl, page, setPage, setLoading}) {
     setPage(1)
     setOldData([])
 
-  }, [owner, repo])
+  }, [owner, repo, prevOwner, prevRepo])
 
   useEffect(() => {
-    if(!owner || !repo) return
+    const activeOwner = prevOwner ?? owner
+    const activeRepo = prevRepo ?? repo
+    if(!activeOwner || !activeRepo) return
 
     const fetchData = async () => { 
       
       setLoading(true)
 
-      const res = await axios.post(`http://localhost:5000/api/getGraph`, {owner, repo, page})
+      const res = await axios.post(`http://localhost:5000/api/getGraph`, {owner: activeOwner, repo: activeRepo, page})
       const data = res.data.commits
-
-      
+      if(data.length === 0) return
       
       setOldData(prev => {
         const merged = [...prev, ...data]
@@ -91,7 +94,7 @@ function FlowContent({owner, repo, url, updateUrl, page, setPage, setLoading}) {
           parentIds: item.parents?.map((it) => it.sha) 
         })) 
 
-        const newNodes = nodeLayout(newData)
+        const newNodes = nodeLayout(newData, activeOwner, activeRepo)
       
         const newEdges = newData.flatMap((commit) => 
           commit.parentIds.map((pid) => ({
@@ -149,7 +152,10 @@ function FlowContent({owner, repo, url, updateUrl, page, setPage, setLoading}) {
 
     }
 
-    updateDb()
+    if(!fromRefresh) {
+      updateDb()
+    }
+    
   }, [owner, repo, nodes])
 
   useEffect(() => {
@@ -200,7 +206,7 @@ function FlowContent({owner, repo, url, updateUrl, page, setPage, setLoading}) {
 
   }
 
-  const nodeLayout = (commits) => {
+  const nodeLayout = (commits, owner, repo) => {
 
     if(!commits) return
 
@@ -208,7 +214,7 @@ function FlowContent({owner, repo, url, updateUrl, page, setPage, setLoading}) {
 
     return commits.map((commit, i) => ({
       id: commit.id,
-      data: {label: commit.label},
+      data: {label: commit.label, owner, repo},
       position: {x: branchMap[commit.id] * 250, y: i * 120},
       style: {background: "#282828", color: "whitesmoke", border: "2px solid whitesmoke", borderRadius: "50%", width: "70px", height: "70px", paddingTop: "25px", cursor: "pointer"}
     }))
@@ -234,7 +240,6 @@ function FlowContent({owner, repo, url, updateUrl, page, setPage, setLoading}) {
           onEdgesChange={onEdgesChange}
           style={{background: "#181818"}}
           onNodeClick={(e, node) => {
-            console.log("node clicked", node)
             e.stopPropagation()
             setSideNode(node)
             setSideBarOpen(true)
@@ -249,7 +254,7 @@ function FlowContent({owner, repo, url, updateUrl, page, setPage, setLoading}) {
         <Background />
         <MiniMap style={{background: "#232323"}} maskColor="rgba(86, 86, 86, 0.5)"/>
       </ReactFlow>
-      <SideBar open={sideBarOpen} commit={sideNode} owner={prevOwner || owner} repo={prevRepo || repo}/>
+      <SideBar open={sideBarOpen} commit={sideNode}/>
       <HistoryBar onSend={handleChildData}/>
     </>
   )
@@ -258,7 +263,7 @@ function FlowContent({owner, repo, url, updateUrl, page, setPage, setLoading}) {
 
 
 
-export default function Tree({owner, repo, url, updateUrl, page, setPage, setLoading}) {
+export default function Tree({owner, repo, url, updateUrl, page, setPage, setLoading, fromRefresh}) {
 
   
   
@@ -266,7 +271,7 @@ export default function Tree({owner, repo, url, updateUrl, page, setPage, setLoa
   return (
     <div style={{ width: "100vw", height: "100vh"}}>
       <ReactFlowProvider>
-        <FlowContent owner={owner} repo={repo} url={url} updateUrl={updateUrl} page={page} setPage={setPage} setLoading={setLoading}/>
+        <FlowContent owner={owner} repo={repo} url={url} updateUrl={updateUrl} page={page} setPage={setPage} setLoading={setLoading} fromRefresh={fromRefresh}/>
       </ReactFlowProvider>
       
     </div>
