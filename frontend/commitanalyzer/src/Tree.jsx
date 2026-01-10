@@ -255,7 +255,7 @@ function FlowContent({owner, repo, url, updateUrl, page, setPage, setLoading, fr
         <MiniMap style={{background: "#232323"}} maskColor="rgba(86, 86, 86, 0.5)"/>
       </ReactFlow>
       <SideBar open={sideBarOpen} commit={sideNode}/>
-      <HistoryBar onSend={handleChildData}/>
+      <HistoryBar onSend={handleChildData} setSideBarOpen={setSideBarOpen}/>
     </>
   )
 }

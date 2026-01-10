@@ -7,7 +7,7 @@ import HistoryContext from '../HistroryContext';
 
 
 
-const HistoryBar = ({onSend}) => {
+const HistoryBar = ({onSend, setSideBarOpen}) => {
 
     const token = localStorage.getItem('token')
     const user = jwtDecode(token)
@@ -99,7 +99,19 @@ const HistoryBar = ({onSend}) => {
                 {showContent && <div className={`mt-34`}>
                     <p className='ml-5 mb-2 text-md text-zinc-400'>Your analyzes</p>
                     {history.map((repo, index) => (
-                        <div key={index} className='overflow-x-hidden relative ml-1' onClick={() => send(repo.id)}  onMouseEnter={() => {setDeleteHovered(index)}} onMouseLeave={() => {setDeleteHovered(null)}}>
+                        <div 
+                            key={index} 
+                            className='overflow-x-hidden relative ml-1' 
+                            onClick={() => {
+                                send(repo.id)
+                                setSideBarOpen(false)
+                            }}  
+                            onMouseEnter={() => {
+                                setDeleteHovered(index)
+                            }} 
+                            onMouseLeave={() => {
+                                setDeleteHovered(null)
+                            }}>
                             <p className={` text-sm cursor-pointer ${deleteHovered === index ? 'bg-white/15 ml-2 mr-2 pl-2 mt-1 mb-1 pt-2 pb-2 rounded-md' : 'ml-4 mt-3 mb-3'}`}>{repo.url} {deleteHovered === index && <Trash2 className='h-4 w-4 absolute top-3.5 right-4 inline-block text-red-400 cursor-pointer' onClick={(e) => {deleteRepo(e, repo.id)
                                 send('clear')
                             }}/>}</p>
