@@ -24,7 +24,7 @@ const SideBar = ({commit, open}) => {
     if(!owner || !repo || !sha) return 
 
     const getDetails = async () => {
-      const res = await axios.post("http://localhost:5000/api/getGraphData", {owner, repo, sha})
+      const res = await axios.post("/api/getGraphData", {owner, repo, sha})
       setDetails(res)
     }
 
@@ -34,7 +34,7 @@ const SideBar = ({commit, open}) => {
 
         try {
           
-          const res = await fetch("http://localhost:5000/commit/summary", {
+          const res = await fetch("/api/commit/summary", {
           method: "POST",
           headers: {"Content-Type": "application/json"},
           body: JSON.stringify({owner, repo, sha})
@@ -104,7 +104,7 @@ const SideBar = ({commit, open}) => {
 
 
   return (
-    <div className={`bg-white/10 backdrop-blur-3xl border-l border-white/20 h-full flex absolute top-0 right-0 z-10  transition-all duration-500 ${open ? "w-96" : "w-0 pointer-events-none"} flex-col overflow-auto`}>
+    <div className={`bg-white/10 backdrop-blur-3xl border-l border-white/20 h-full flex absolute top-0 right-0 z-10  transition-all duration-500 ${open ? "w-84 2xl:w-96" : "w-0 pointer-events-none"} flex-col overflow-auto`}>
       {showContent && <h1 className='text-2xl font-semibold ml-3 mt-3'>Commit Details</h1>}
       {showContent && details && <div className='ml-3.5 mt-4 flex-col space-y-3'>
           <p><span className='font-semibold'>SHA:</span> {details.data.sha.slice(-5)}</p>  

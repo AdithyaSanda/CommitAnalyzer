@@ -7,7 +7,7 @@ import HistoryContext from '../HistroryContext';
 
 
 
-const HistoryBar = ({onSend, setSideBarOpen}) => {
+const HistoryBar = ({onSend, setSideBarOpen, setHistoryOpen, historyOpen}) => {
 
     const token = localStorage.getItem('token')
     const user = jwtDecode(token)
@@ -21,6 +21,7 @@ const HistoryBar = ({onSend, setSideBarOpen}) => {
     const [hovered, setHovered] = useState(false)
     const [showContent, setShowContent] = useState(false)
     const [deleteHovered, setDeleteHovered] = useState(null)
+    const [open, setOpen] = useState(false)
 
     useEffect(() => {
         if(!small) {
@@ -36,7 +37,8 @@ const HistoryBar = ({onSend, setSideBarOpen}) => {
 
         if(!userId) return
         async function getHistory() {
-            const response = await axios.get(`http://localhost:5000/history/getHistory/${userId}`)
+            const response = await axios.get(`/api/history/getHistory/${userId}`)
+            console.log(response)
             const repoArr = response.data.map((repo) => {
                 const url = new URL(repo.repoUrl)
                 const pathParts = url.pathname.split('/')
@@ -47,7 +49,7 @@ const HistoryBar = ({onSend, setSideBarOpen}) => {
         }
 
         async function getUser() {
-            const user = await axios.get(`http://localhost:5000/users/getUser/${userId}`)
+            const user = await axios.get(`/api/users/getUser/${userId}`)
             setUserName(user.data.name)
         }
 
@@ -67,26 +69,41 @@ const HistoryBar = ({onSend, setSideBarOpen}) => {
 
     const deleteRepo = async (e, id) => {
         e.stopPropagation()
-        await axios.delete(`http://localhost:5000/history/item/${id}`)
+        await axios.delete(`/api/history/item/${id}`)
         setHistory(prev => prev.filter(item => item.id !== id));
     }    
 
     
     return (
         <>
-            <div className={` h-screen bg-white/10 backdrop-blur-3xl border-r border-white/20 absolute top-0 overflow-y-auto transition-all duration-300 pb-4 ${small ? 'w-16' : 'w-66' }`}>
+            <div className='absolute top-4 ml-6 p-2 bg-white/30 rounded-2xl cursor-e-resize 2xl:hidden' onClick={() => {
+                setOpen(prev => !prev)
+                setHistoryOpen(true)
+                setSmall(false)
+                setShowContent(true)
+            }}>
+                <PanelLeft className=' w-5 h-5 text-neutral-400 '/>
+            </div>
+            
+            <div className={`${historyOpen ? 'block' : 'hidden'} z-10 2xl:block h-screen bg-white/10 backdrop-blur-3xl border-r border-white/20 absolute top-0 overflow-y-auto transition-all duration-300 pb-4 ${small ? 'w-16' : 'w-66' }`}>
 
                 {small ? (
                     !hovered ? (
                         <GitGraph className="h-6 w-6 text-green-500 absolute top-6 ml-4.5 cursor-pointer" onMouseEnter={() => {setHovered(true)}} onClick={() => send('clear')}/>
                     ) : (
-                        <PanelLeft className='absolute top-6 ml-4.5 text-neutral-400 cursor-e-resize' onMouseLeave={() => {setHovered(false)}} onClick={() => setSmall((prev) => !prev)}/>
+                        <PanelLeft className='absolute top-6 ml-4.5 text-neutral-400 cursor-e-resize' onMouseLeave={() => {setHovered(false)}} onClick={() => {
+                            setSmall((prev) => !prev)
+                            setOpen(false)
+                            setHistoryOpen(false)
+                        }}/>
                     )
                 ) : (
                     <>
                         <GitGraph className="h-6 w-6 text-green-500 absolute top-6 ml-4.5 cursor-pointer"  onClick={() => send('clear')}/>
                         <PanelLeft className='absolute top-6 right-3 text-neutral-400 cursor-e-resize' onClick={() =>{ setSmall((prev) => !prev)
                             setHovered(false)
+                            setOpen(false)
+                            setHistoryOpen(false)
                         }}/>
                     </>
                     
@@ -105,6 +122,8 @@ const HistoryBar = ({onSend, setSideBarOpen}) => {
                             onClick={() => {
                                 send(repo.id)
                                 setSideBarOpen(false)
+                                setHistoryOpen(false)
+                                setOpen(false)
                             }}  
                             onMouseEnter={() => {
                                 setDeleteHovered(index)
@@ -119,7 +138,7 @@ const HistoryBar = ({onSend, setSideBarOpen}) => {
                     ))}
                 </div>}
             </div>
-            <div className={` h-12  bg-white/0 backdrop-blur-3xl border-t border-r border-white/20  absolute bottom-0 transition-all duration-300 ${small ? 'w-16' : 'w-66 border-t border-neutral-500'}`}>
+            <div className={` ${historyOpen ? 'max-sm:block' : 'max-sm:hidden'} fixed h-12 z-10  bg-white/0 backdrop-blur-3xl border-t border-r border-white/20  2xl:absolute bottom-0 2xl:transition-all 2xl:duration-300 ${small ? 'w-16' : 'w-66 border-t border-neutral-500'}`}>
                     {userName && <img src={`https://placehold.co/30?text=${userName.slice(0,1).toUpperCase()}`} alt="" className='rounded-3xl ml-4 mt-2'/>}
                     {!small && <p className='ml-5 text-sm absolute top-3 left-10 font-semibold'>{userName}</p>}
                     {!small && <button className='text-sm bg-green-500/10 border border-green-600 p-1.5 px-3 rounded-2xl absolute right-5 top-2 text-green-600 cursor-pointer' onClick={handleLogout}>Logout</button>}

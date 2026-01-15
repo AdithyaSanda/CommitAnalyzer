@@ -18,6 +18,7 @@ function FlowContent({owner, repo, url, updateUrl, page, setPage, setLoading, fr
   const [prevOwner, setPrevOwner] = useState()
   const [prevRepo, setPrevRepo] = useState()
   const [sideBarOpen, setSideBarOpen] = useState(false)
+  const [historyOpen, setHistoryOpen] = useState(false)
 
   const {setHistory} = useContext(HistoryContext)
 
@@ -45,7 +46,7 @@ function FlowContent({owner, repo, url, updateUrl, page, setPage, setLoading, fr
         return
       }
 
-      const response = await axios.get(`http://localhost:5000/history/item/${prevId}`)
+      const response = await axios.get(`/api/history/item/${prevId}`)
       const url = new URL(response.data.repoUrl)  
       const pathParts = url.pathname.split('/')
       updateUrl(url)
@@ -81,7 +82,7 @@ function FlowContent({owner, repo, url, updateUrl, page, setPage, setLoading, fr
       
       setLoading(true)
 
-      const res = await axios.post(`http://localhost:5000/api/getGraph`, {owner: activeOwner, repo: activeRepo, page})
+      const res = await axios.post(`/api/getGraph`, {owner: activeOwner, repo: activeRepo, page})
       const data = res.data.commits
       if(data.length === 0) return
       
@@ -142,7 +143,7 @@ function FlowContent({owner, repo, url, updateUrl, page, setPage, setLoading, fr
       const user = jwtDecode(token)
       const userId = user.id
       
-      const response = await axios.post('http://localhost:5000/history/addRepo', {userId:userId, repoUrl:url, nodes:nodes, edges:edges})
+      const response = await axios.post('/api/history/addRepo', {userId:userId, repoUrl:url, nodes:nodes, edges:edges})
       const Url = new URL(url)
       const pathParts = Url.pathname.split('/')
       const newItem = {id: response.data.repo._id, url: pathParts[1] + '/' + pathParts[2]}
@@ -255,7 +256,11 @@ function FlowContent({owner, repo, url, updateUrl, page, setPage, setLoading, fr
         <MiniMap style={{background: "#232323"}} maskColor="rgba(86, 86, 86, 0.5)"/>
       </ReactFlow>
       <SideBar open={sideBarOpen} commit={sideNode}/>
-      <HistoryBar onSend={handleChildData} setSideBarOpen={setSideBarOpen}/>
+      {historyOpen && (<div className="fixed inset-0 z-40 bg-black/30 2xl:hidden" onClick={() => {setHistoryOpen(false)}}/>)}
+      <div className="fixed top-0 left-0 z-50 2xl:static" onClick={() => e.stopPropagation()}>
+          <HistoryBar onSend={handleChildData} setSideBarOpen={setSideBarOpen} setHistoryOpen={setHistoryOpen} historyOpen={historyOpen}/>
+      </div>
+      
     </>
   )
 }
