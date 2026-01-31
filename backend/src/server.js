@@ -11,11 +11,15 @@ import loginRoute from './routes/login.js'
 import historyRoute from './routes/history.js'
 import userRoute from './routes/getUser.js'
 import summaryRoute from './routes/getSummary.js'
+import verify from "./utils/AuthMiddleware.js"
+import cookieParser from 'cookie-parser'
+import refreshRoute from './routes/refreshToken.js'
+import { globalLimiter, authLimiter } from "./utils/rateLimiter.js"
 
 
 dotenv.config()
 const app = express()
-app.use(cors())
+// app.use(cors())
 app.use(express.json())
 
 connectDB()
@@ -28,16 +32,27 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use(cookieParser())
 
-app.use("/api/getGraph", getGraph)
-app.use("/api/git", testGit)
-app.use("/api/getGraphData", getGraphData)
-app.use("/api/getSummary", getCommitSummary)
-app.use('/api/user', signupRoute)
-app.use('/api/auth', loginRoute)
-app.use('/api/history', historyRoute)
-app.use('/api/users', userRoute)
-app.use('/api/commit', summaryRoute)
+app.use(cors({
+  origin: "http://localhost:5173",
+  credentials: true
+}));
+
+app.use('/api/user', authLimiter, signupRoute)
+app.use('/api/auth', authLimiter, loginRoute)
+app.use('/api/refresh', refreshRoute)
+
+app.use(globalLimiter)
+
+app.use("/api/getGraph", verify, getGraph)
+app.use("/api/git", verify, testGit)
+app.use("/api/getGraphData", verify, getGraphData)
+app.use("/api/getSummary", verify, getCommitSummary)
+app.use('/api/history', verify, historyRoute)
+app.use('/api/users', verify, userRoute)
+app.use('/api/commit', verify, summaryRoute)
+
 
 app.listen(5000, () => {
     console.log(`server running on port 5000`)

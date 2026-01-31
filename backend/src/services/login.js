@@ -1,6 +1,11 @@
 import bcrypt from "bcrypt"
-import generateToken from "../utils/jwtUtil.js"
+import generateToken, {generateRefreshToken} from "../utils/jwtUtil.js"
 import User from "../models/User.js"
+import crypto from "crypto"
+
+const hashToken = (token) => {
+    return crypto.createHash("sha256").update(token).digest("hex")
+}
 
 const login = async (email, password) => {
     try {
@@ -15,7 +20,16 @@ const login = async (email, password) => {
         }
 
         const token = generateToken(existingUser)
-        return token
+        const refreshToken = generateRefreshToken(existingUser)
+
+        const refreshHash = hashToken(refreshToken)
+
+        if(!existingUser.refreshTokens.includes(refreshHash)) {
+            existingUser.refreshTokens.push(refreshHash)
+            await existingUser.save()
+        }
+
+        return {token, refreshToken, existingUser}
     }
     catch(err) {
         console.error("Login error: ", err.message)

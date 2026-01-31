@@ -8,9 +8,9 @@ import HistoryProvider from './HistoryProvider.jsx'
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
-      <HistoryProvider>
-        <App />
-      </HistoryProvider>
+        <HistoryProvider>
+          <App />
+        </HistoryProvider>
     </BrowserRouter>
   </StrictMode>,
 )

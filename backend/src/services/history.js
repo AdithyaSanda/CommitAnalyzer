@@ -1,7 +1,7 @@
 import History from "../models/History.js"
 
-function createHistory(repoData) {
-    const {userId, repoUrl, nodes, edges} = repoData
+function createHistory(repoData, userId) {
+    const {repoUrl, nodes, edges} = repoData
 
     const createdHistory = new History({
         userId,

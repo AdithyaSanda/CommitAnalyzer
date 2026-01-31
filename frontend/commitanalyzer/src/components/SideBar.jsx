@@ -1,4 +1,4 @@
-import axios from 'axios'
+import axiosPrivate from '../api/axiosPrivate'
 import React, { useEffect, useState, useRef } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkBreaks from 'remark-breaks'
@@ -24,7 +24,7 @@ const SideBar = ({commit, open}) => {
     if(!owner || !repo || !sha) return 
 
     const getDetails = async () => {
-      const res = await axios.post("/api/getGraphData", {owner, repo, sha})
+      const res = await axiosPrivate.post("/api/getGraphData", {owner, repo, sha})
       setDetails(res)
     }
 
@@ -34,9 +34,10 @@ const SideBar = ({commit, open}) => {
 
         try {
           
-          const res = await fetch("/api/commit/summary", {
+          const res = await fetch("http://localhost:5000/api/commit/summary", {
           method: "POST",
-          headers: {"Content-Type": "application/json"},
+          headers: {"Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem('token')}`},
+          credentials: "include",
           body: JSON.stringify({owner, repo, sha})
         })
 

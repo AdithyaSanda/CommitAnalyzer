@@ -5,8 +5,6 @@ const getCacheSummary = async (req, res, next) => {
     try {
         const {sha} = req.body
 
-        
-
         const response = await client.get(sha)
 
         if(response) {

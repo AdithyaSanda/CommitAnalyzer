@@ -6,7 +6,8 @@ import { getRepo, deleteHistory } from "../services/history.js"
 async function addHistory(req, res) {
     try {
         const repoData = req.body
-        const repo = await createHistory(repoData)
+        const userId = req.user.id
+        const repo = await createHistory(repoData, userId)
         res.status(200).json({repo: repo, message: "repo added successfully"})
     }
     catch(err) {
@@ -16,7 +17,7 @@ async function addHistory(req, res) {
 
 export const getUserHistory = async (req, res) => {
     try {
-        const userId = req.params.userId
+        const userId = req.user.id
         const history = await getHistory(userId)
         res.json(history)
     }

@@ -2,9 +2,11 @@ import axios from "axios"
 import { fetchCommitDiff } from "./githubService.js"
 import { InferenceClient } from "@huggingface/inference"
 
-const model = "Qwen/Qwen2.5-Coder-7B-Instruct"
 
-const client = new InferenceClient(process.env.HF_API)
+const model = "Qwen/Qwen2.5-Coder-32B-Instruct"
+
+
+const client = new InferenceClient(process.env.HF_TOKEN)
 
 
 
@@ -46,7 +48,7 @@ export async function* getSummary(owner, repo, sha) {
 
     
 
-
+    
     const stream = client.chatCompletionStream(
         {
             model: model,
@@ -60,7 +62,7 @@ export async function* getSummary(owner, repo, sha) {
             temperature: 0.2
         }
     ) 
-        
+  
     for await(const chunk of stream) {
         if(chunk.choices && chunk.choices.length > 0) {
             const newContent = chunk.choices[0].delta.content
@@ -69,7 +71,7 @@ export async function* getSummary(owner, repo, sha) {
             }
         }
     }
-
+    
 }
 
 

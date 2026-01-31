@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import axios from "axios"
+import axiosPublic from '../api/axiosPublic'
 import { useNavigate, Link } from 'react-router-dom'
 
 const Signup = () => {
@@ -23,7 +23,7 @@ const Signup = () => {
     const handleSubmit = async (e) => {
         e.preventDefault()
         try {
-            const response = await axios.post("/api/user/register",formData, {
+            const response = await axiosPublic.post("/api/user/register",formData, {
                 headers: {
                     "Content-Type": "application/json"
                 }

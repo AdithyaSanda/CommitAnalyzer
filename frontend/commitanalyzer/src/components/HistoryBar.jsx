@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react'
 import { GitGraph, PanelLeft, Trash2 } from "lucide-react";
-import axios from 'axios'
+import axiosPrivate from '../api/axiosPrivate';
 import {jwtDecode} from 'jwt-decode'
 import { useNavigate } from 'react-router-dom'
 import HistoryContext from '../HistroryContext';
@@ -37,7 +37,7 @@ const HistoryBar = ({onSend, setSideBarOpen, setHistoryOpen, historyOpen}) => {
 
         if(!userId) return
         async function getHistory() {
-            const response = await axios.get(`/api/history/getHistory/${userId}`)
+            const response = await axiosPrivate.get(`/api/history/getHistory/${userId}`)
             console.log(response)
             const repoArr = response.data.map((repo) => {
                 const url = new URL(repo.repoUrl)
@@ -49,7 +49,7 @@ const HistoryBar = ({onSend, setSideBarOpen, setHistoryOpen, historyOpen}) => {
         }
 
         async function getUser() {
-            const user = await axios.get(`/api/users/getUser/${userId}`)
+            const user = await axiosPrivate.get(`/api/users/getUser/${userId}`)
             setUserName(user.data.name)
         }
 
@@ -63,13 +63,12 @@ const HistoryBar = ({onSend, setSideBarOpen, setHistoryOpen, historyOpen}) => {
 
     const handleLogout = () => {
         localStorage.removeItem("token")
-        localStorage.removeItem('tokenExpiry')
         navigate('/login', {replace: true})
     }
 
     const deleteRepo = async (e, id) => {
         e.stopPropagation()
-        await axios.delete(`/api/history/item/${id}`)
+        await axiosPrivate.delete(`/api/history/item/${id}`)
         setHistory(prev => prev.filter(item => item.id !== id));
     }    
 

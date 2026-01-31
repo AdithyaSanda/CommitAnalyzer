@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react'
-import axios from 'axios'
+import axiosPublic from '../api/axiosPublic'
 import { Navigate, useNavigate, Link } from 'react-router-dom'
 
 const Login = () => {
     const navigate = useNavigate()
+    localStorage.clear('repo-info')
 
     useEffect(() => {
         const token = localStorage.getItem('token')
-        const expiry = localStorage.getItem('tokenExpiry')
-        if(token && Date.now() < expiry) {
+        if(token) {
             navigate('/dashboard', {replace: true})
         }
     }, [navigate])
@@ -34,14 +34,14 @@ const Login = () => {
     const handleSubmit = async (e) => {
         e.preventDefault()
         try {
-            const response = await axios.post('/api/auth/login', formData, {
+            const response = await axiosPublic.post('/api/auth/login', formData, {
                 headers: {
                     'Content-Type': 'application/json'
-                }
+                },
+                withCredentials: true,
             })
 
             localStorage.setItem('token', response.data.token)
-            localStorage.setItem('tokenExpiry', Date.now() + 48*60*60*1000)
             navigate('/dashboard')
         }
         catch(err) {
