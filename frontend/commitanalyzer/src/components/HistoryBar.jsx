@@ -75,7 +75,7 @@ const HistoryBar = ({onSend, setSideBarOpen, setHistoryOpen, historyOpen}) => {
     
     return (
         <>
-            <div className='absolute top-4 ml-6 p-2 bg-white/30 rounded-2xl cursor-e-resize 2xl:hidden' onClick={() => {
+            <div className='absolute top-4 ml-6 p-2 bg-white/30 rounded-2xl cursor-e-resize lg:hidden 2xl:hidden xl:hidden' onClick={() => {
                 setOpen(prev => !prev)
                 setHistoryOpen(true)
                 setSmall(false)
@@ -84,7 +84,7 @@ const HistoryBar = ({onSend, setSideBarOpen, setHistoryOpen, historyOpen}) => {
                 <PanelLeft className=' w-5 h-5 text-neutral-400 '/>
             </div>
             
-            <div className={`${historyOpen ? 'block' : 'hidden'} z-10 2xl:block h-screen bg-white/10 backdrop-blur-3xl border-r border-white/20 absolute top-0 overflow-y-auto transition-all duration-300 pb-4 ${small ? 'w-16' : 'w-66' }`}>
+            <div className={`${historyOpen ? 'block' : 'hidden'} z-10 2xl:block lg:block xl:block h-screen bg-white/10 backdrop-blur-3xl border-r border-white/20 absolute top-0 overflow-y-auto transition-all duration-300 pb-4 ${small ? 'w-16' : 'w-66' }`}>
 
                 {small ? (
                     !hovered ? (
@@ -137,7 +137,7 @@ const HistoryBar = ({onSend, setSideBarOpen, setHistoryOpen, historyOpen}) => {
                     ))}
                 </div>}
             </div>
-            <div className={` ${historyOpen ? 'max-sm:block' : 'max-sm:hidden'} fixed h-12 z-10  bg-white/0 backdrop-blur-3xl border-t border-r border-white/20  2xl:absolute bottom-0 2xl:transition-all 2xl:duration-300 ${small ? 'w-16' : 'w-66 border-t border-neutral-500'}`}>
+            <div className={` ${historyOpen ? 'max-sm:block sm:block md:block lg:block xl:block 2xl:block' : 'max-sm:hidden sm:hidden md:hidden lg:block xl:block 2xl:block'}  fixed h-12 z-10  bg-white/0 backdrop-blur-3xl border-t border-r border-white/20  2xl:absolute bottom-0 transition-all duration-300 ${small ? 'w-16' : 'w-66 border-t border-neutral-500'}`}>
                     {userName && <img src={`https://placehold.co/30?text=${userName.slice(0,1).toUpperCase()}`} alt="" className='rounded-3xl ml-4 mt-2'/>}
                     {!small && <p className='ml-5 text-sm absolute top-3 left-10 font-semibold'>{userName}</p>}
                     {!small && <button className='text-sm bg-green-500/10 border border-green-600 p-1.5 px-3 rounded-2xl absolute right-5 top-2 text-green-600 cursor-pointer' onClick={handleLogout}>Logout</button>}
