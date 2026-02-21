@@ -15,6 +15,7 @@ import verify from "./utils/AuthMiddleware.js"
 import cookieParser from 'cookie-parser'
 import refreshRoute from './routes/refreshToken.js'
 import { globalLimiter, authLimiter } from "./utils/rateLimiter.js"
+import logoutRoute from "./routes/logout.js"
 
 
 dotenv.config()
@@ -42,6 +43,7 @@ app.use(cors({
 app.use('/api/user', authLimiter, signupRoute)
 app.use('/api/auth', authLimiter, loginRoute)
 app.use('/api/refresh', refreshRoute)
+app.use('/api/log', logoutRoute)
 
 app.use(globalLimiter)
 

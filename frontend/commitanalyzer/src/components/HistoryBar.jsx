@@ -1,9 +1,11 @@
 import React, { useContext, useEffect, useState } from 'react'
 import { GitGraph, PanelLeft, Trash2 } from "lucide-react";
 import axiosPrivate from '../api/axiosPrivate';
+import axiosPublic from '../api/axiosPublic';
 import {jwtDecode} from 'jwt-decode'
 import { useNavigate } from 'react-router-dom'
 import HistoryContext from '../HistroryContext';
+import axios from 'axios';
 
 
 
@@ -61,7 +63,8 @@ const HistoryBar = ({onSend, setSideBarOpen, setHistoryOpen, historyOpen}) => {
         onSend(id)
     }
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
+        await axiosPublic.post("/api/log/logout", { withCredentials: true });
         localStorage.removeItem("token")
         navigate('/login', {replace: true})
     }

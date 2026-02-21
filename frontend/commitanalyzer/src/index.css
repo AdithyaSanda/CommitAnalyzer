@@ -1,8 +1,14 @@
 @import "tailwindcss";
 
+@theme {
+  --font-sans: "Roboto", sans-serif;
+}
+
 * {
   box-sizing: border-box;
 }
+
+
 
 body {
   background-color: rgb(21, 21, 21);
